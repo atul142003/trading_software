@@ -1,0 +1,25 @@
+
+ADVANCED MODEL TRAINING REPORT
+Generated: 2026-06-01 22:05:32
+
+PERFORMANCE METRICS:
+  Accuracy:  82.50%
+  Precision: 75.00%
+  Recall:    69.23%
+  F1-Score:  72.00%
+  ROC-AUC:   84.33%
+
+CROSS-VALIDATION:
+  Accuracy:  86.36% +/- 4.72%
+  Precision: 86.83% +/- 4.98%
+  F1-Score:  86.27% +/- 4.75%
+
+IMPROVEMENTS:
+  Accuracy:  +26.57%
+  Precision: +42.74%
+  Recall:    +2.56%
+  F1-Score:  +28.52%
+
+FEATURES: 24 total
+TRAINING SAMPLES: 212
+TEST SAMPLES: 40
