@@ -13,3 +13,20 @@ __pycache__/
 *.dll
 *.pkg
 Thumbs.db
+# Additional deployment exclusions
+test_*.py
+train_*.py
+check_*.py
+*.html
+structure.txt
+training_output.log
+ACCURACY_REPORT.md
+ACCURACY_REPORT.py
+FINAL_OPTIMIZATION_SUMMARY.txt
+FINAL_SUMMARY.py
+OPTIMIZATION_REPORT.md
+PROFESSIONAL_TRAINING_REPORT.txt
+PROFESSIONAL_TRAINING_STATUS.md
+SCANNER_GUIDE.md
+training_log.txt
+EMARSIMACDStrategy.html
