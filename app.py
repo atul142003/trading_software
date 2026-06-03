@@ -263,31 +263,41 @@ if portfolio_summary['positions']:
     
     with col_pexp1:
         if st.button("Export Portfolio to Excel", key="export_portfolio_excel"):
-            portfolio_data = {
-                "Portfolio Summary": pd.DataFrame([portfolio_summary]),
-                "Current Positions": positions_df
-            }
-            excel_data = export_to_excel(portfolio_data)
-            st.download_button(
-                label="Download Excel",
-                data=excel_data,
-                file_name="portfolio_report.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+            try:
+                portfolio_data = {
+                    "Portfolio Summary": pd.DataFrame([portfolio_summary]),
+                    "Current Positions": positions_df
+                }
+                excel_data = export_to_excel(portfolio_data)
+                st.download_button(
+                    label="Download Excel",
+                    data=excel_data,
+                    file_name="portfolio_report.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            except ImportError as e:
+                st.error(f"Excel export requires openpyxl. Install with: pip install openpyxl")
+            except Exception as e:
+                st.error(f"Export failed: {str(e)}")
     
     with col_pexp2:
         if st.button("Export Portfolio to PDF", key="export_portfolio_pdf"):
-            portfolio_data = {
-                "Portfolio Summary": portfolio_summary,
-                "Current Positions": positions_df
-            }
-            pdf_data = export_to_pdf(portfolio_data, "Portfolio Report")
-            st.download_button(
-                label="Download PDF",
-                data=pdf_data,
-                file_name="portfolio_report.pdf",
-                mime="application/pdf"
-            )
+            try:
+                portfolio_data = {
+                    "Portfolio Summary": portfolio_summary,
+                    "Current Positions": positions_df
+                }
+                pdf_data = export_to_pdf(portfolio_data, "Portfolio Report")
+                st.download_button(
+                    label="Download PDF",
+                    data=pdf_data,
+                    file_name="portfolio_report.pdf",
+                    mime="application/pdf"
+                )
+            except ImportError as e:
+                st.error(f"PDF export requires reportlab. Install with: pip install reportlab")
+            except Exception as e:
+                st.error(f"Export failed: {str(e)}")
 else:
     st.info("No positions in portfolio. Add positions to start tracking.")
 
@@ -794,33 +804,43 @@ if st.button("Analyze"):
     
     with col_exp1:
         if st.button("Export Analysis to Excel", key="export_analysis_excel"):
-            analysis_data = {
-                "Technical Indicators": pd.DataFrame([indicator_data]),
-                "Multi-Timeframe Analysis": pd.DataFrame(results),
-                "Recent Market Data": df.tail(10)
-            }
-            excel_data = export_to_excel(analysis_data)
-            st.download_button(
-                label="Download Excel",
-                data=excel_data,
-                file_name=f"{symbol}_analysis.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+            try:
+                analysis_data = {
+                    "Technical Indicators": pd.DataFrame([indicator_data]),
+                    "Multi-Timeframe Analysis": pd.DataFrame(results),
+                    "Recent Market Data": df.tail(10)
+                }
+                excel_data = export_to_excel(analysis_data)
+                st.download_button(
+                    label="Download Excel",
+                    data=excel_data,
+                    file_name=f"{symbol}_analysis.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            except ImportError as e:
+                st.error(f"Excel export requires openpyxl. Install with: pip install openpyxl")
+            except Exception as e:
+                st.error(f"Export failed: {str(e)}")
     
     with col_exp2:
         if st.button("Export Analysis to PDF", key="export_analysis_pdf"):
-            analysis_data = {
-                "Technical Indicators": indicator_data,
-                "Multi-Timeframe Analysis": results,
-                "Recent Market Data": df.tail(10)
-            }
-            pdf_data = export_to_pdf(analysis_data, f"{symbol} Analysis Report")
-            st.download_button(
-                label="Download PDF",
-                data=pdf_data,
-                file_name=f"{symbol}_analysis.pdf",
-                mime="application/pdf"
-            )
+            try:
+                analysis_data = {
+                    "Technical Indicators": indicator_data,
+                    "Multi-Timeframe Analysis": results,
+                    "Recent Market Data": df.tail(10)
+                }
+                pdf_data = export_to_pdf(analysis_data, f"{symbol} Analysis Report")
+                st.download_button(
+                    label="Download PDF",
+                    data=pdf_data,
+                    file_name=f"{symbol}_analysis.pdf",
+                    mime="application/pdf"
+                )
+            except ImportError as e:
+                st.error(f"PDF export requires reportlab. Install with: pip install reportlab")
+            except Exception as e:
+                st.error(f"Export failed: {str(e)}")
 
     # =========================
     # BACKTESTING RESULTS
@@ -995,28 +1015,38 @@ if st.button("Analyze"):
                 
                 with col_bexp1:
                     if st.button("Export Backtest to Excel", key="export_backtest_excel"):
-                        backtest_data = {
-                            "Backtest Metrics": pd.DataFrame([backtest_results]),
-                            "Trade History": trades_df if 'trades_df' in locals() else pd.DataFrame()
-                        }
-                        excel_data = export_to_excel(backtest_data)
-                        st.download_button(
-                            label="Download Excel",
-                            data=excel_data,
-                            file_name=f"{symbol}_backtest.xlsx",
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        )
+                        try:
+                            backtest_data = {
+                                "Backtest Metrics": pd.DataFrame([backtest_results]),
+                                "Trade History": trades_df if 'trades_df' in locals() else pd.DataFrame()
+                            }
+                            excel_data = export_to_excel(backtest_data)
+                            st.download_button(
+                                label="Download Excel",
+                                data=excel_data,
+                                file_name=f"{symbol}_backtest.xlsx",
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                            )
+                        except ImportError as e:
+                            st.error(f"Excel export requires openpyxl. Install with: pip install openpyxl")
+                        except Exception as e:
+                            st.error(f"Export failed: {str(e)}")
                 
                 with col_bexp2:
                     if st.button("Export Backtest to PDF", key="export_backtest_pdf"):
-                        backtest_data = {
-                            "Backtest Metrics": backtest_results,
-                            "Trade History": trades_df if 'trades_df' in locals() else pd.DataFrame()
-                        }
-                        pdf_data = export_to_pdf(backtest_data, f"{symbol} Backtest Report")
-                        st.download_button(
-                            label="Download PDF",
-                            data=pdf_data,
-                            file_name=f"{symbol}_backtest.pdf",
-                            mime="application/pdf"
-                        )
+                        try:
+                            backtest_data = {
+                                "Backtest Metrics": backtest_results,
+                                "Trade History": trades_df if 'trades_df' in locals() else pd.DataFrame()
+                            }
+                            pdf_data = export_to_pdf(backtest_data, f"{symbol} Backtest Report")
+                            st.download_button(
+                                label="Download PDF",
+                                data=pdf_data,
+                                file_name=f"{symbol}_backtest.pdf",
+                                mime="application/pdf"
+                            )
+                        except ImportError as e:
+                            st.error(f"PDF export requires reportlab. Install with: pip install reportlab")
+                        except Exception as e:
+                            st.error(f"Export failed: {str(e)}")
