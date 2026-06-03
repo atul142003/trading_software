@@ -32,6 +32,7 @@ st.set_page_config(
 )
 
 st.title("📈 AI Trading Software V1.1")
+st.write("Welcome to your AI Trading Software")
 
 # Initialize portfolio in session state
 if 'portfolio' not in st.session_state:
