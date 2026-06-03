@@ -21,7 +21,8 @@ def predict_xgb(row):
         "BB_UPPER_N": row["BB_UPPER"] / close_price,
         "BB_LOWER_N": row["BB_LOWER"] / close_price,
         "EMA_DIFF_N": (row["EMA20"] - row["EMA50"]) / close_price,
-        "Price_change": row["Price_change"]
+        "Price_change": row["Price_change"],
+        "TF_strength": abs(row["EMA20"] - row["EMA50"]) / close_price,
     }])
 
     prob = model.predict_proba(X)[0]

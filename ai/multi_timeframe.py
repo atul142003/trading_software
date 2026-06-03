@@ -1,24 +1,15 @@
-import yfinance as yf
-
 from indicators.technical import add_indicators
+from market_data import download_ohlcv
 from ai.trend import detect_trend
 from ai.signals import generate_signal
 
 
 def analyze_timeframe(symbol, interval, period):
 
-    df = yf.download(
-        symbol,
-        interval=interval,
-        period=period,
-        progress=False
-    )
+    df = download_ohlcv(symbol, interval=interval, period=period)
 
     if len(df) < 50:
         return None
-
-    if hasattr(df.columns, "levels"):
-        df.columns = [c[0] for c in df.columns]
 
     df = add_indicators(df)
 

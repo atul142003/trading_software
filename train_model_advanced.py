@@ -59,7 +59,7 @@ print("\n[PHASE 2/5] Advanced feature engineering...")
 df["EMA_diff"] = df["EMA20"] - df["EMA50"]
 df["Price_change"] = df["Close"].pct_change()
 
-close_safe = df["Close"].replace(0, np.nan).fillna(method='bfill')
+close_safe = df["Close"].replace(0, np.nan).bfill()
 
 # Normalized Features
 df["RSI_N"] = df["RSI"] / 100
@@ -74,7 +74,7 @@ df["EMA_DIFF_N"] = df["EMA_diff"] / close_safe
 df["TF_strength"] = (abs(df["EMA20"] - df["EMA50"]) / close_safe).fillna(0)
 
 # ===== NEW ADVANCED FEATURES =====
-print("    → Adding advanced features...")
+print("    -> Adding advanced features...")
 
 # 1. Momentum Features
 df["RSI_momentum"] = df["RSI"].diff().fillna(0)  # RSI acceleration
@@ -114,13 +114,13 @@ df["Higher_High"] = (df["Close"] > df["Close"].shift(1)).astype(int)
 df["Higher_Low"] = df["Close"].rolling(2).min() > df["Close"].rolling(2).min().shift(1)
 df["Higher_Low"] = df["Higher_Low"].fillna(0).astype(int)
 
-print(f"    ✓ Total features: {len([c for c in df.columns if c not in ['Open', 'High', 'Low', 'Close', 'Volume']])} new features added")
+print(f"    [OK] Total features: {len([c for c in df.columns if c not in ['Open', 'High', 'Low', 'Close', 'Volume']])} new features added")
 
 # =========================
 # IMPROVED TARGET DEFINITION
 # =========================
 
-print("\n    → Optimizing target variable...")
+print("\n    -> Optimizing target variable...")
 
 # Multi-horizon targets (ensemble of horizons)
 future_bars_list = [3, 5, 7]  # 3, 5, 7 bars ahead
@@ -142,14 +142,14 @@ df["Target"] = df["Target"].astype(int)
 df = df.dropna(subset=["Target"])
 df = df.replace([np.inf, -np.inf], np.nan).dropna()
 
-print(f"    ✓ Target distribution: {df['Target'].value_counts().to_dict()}")
-print(f"    ✓ Buy ratio: {df['Target'].mean()*100:.2f}%")
+print(f"    [OK] Target distribution: {df['Target'].value_counts().to_dict()}")
+print(f"    [OK] Buy ratio: {df['Target'].mean()*100:.2f}%")
 
 # =========================
 # FEATURE SELECTION
 # =========================
 
-print("\n    → Selecting features...")
+print("\n    -> Selecting features...")
 
 FEATURES = [
     # Core normalized features
@@ -170,8 +170,8 @@ FEATURES = [
 X = df[FEATURES].copy()
 y = df["Target"].copy()
 
-print(f"    ✓ Total features: {len(FEATURES)}")
-print(f"    ✓ Training samples: {len(X)}")
+print(f"    [OK] Total features: {len(FEATURES)}")
+print(f"    [OK] Training samples: {len(X)}")
 
 # =========================
 # DATA PREPROCESSING
@@ -190,8 +190,8 @@ outlier_mask = ~((X < (Q1 - 1.5*IQR)) | (X > (Q3 + 1.5*IQR))).any(axis=1)
 X = X[outlier_mask]
 y = y[outlier_mask]
 
-print(f"    ✓ Outliers removed: {(~outlier_mask).sum()} rows")
-print(f"    ✓ Remaining samples: {len(X)}")
+print(f"    [OK] Outliers removed: {(~outlier_mask).sum()} rows")
+print(f"    [OK] Remaining samples: {len(X)}")
 
 # Train-test split with stratification
 X_train, X_test, y_train, y_test = train_test_split(
@@ -201,14 +201,14 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y  # Maintain class distribution
 )
 
-print(f"    ✓ Train set: {len(X_train)} | Test set: {len(X_test)}")
+print(f"    [OK] Train set: {len(X_train)} | Test set: {len(X_test)}")
 
 # Scaling
 scaler = RobustScaler()  # Better for outliers
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-print(f"    ✓ Features scaled with RobustScaler")
+print(f"    [OK] Features scaled with RobustScaler")
 
 # Class balancing via duplication (alternative to SMOTE)
 minority_class = y_train.value_counts().idxmin()
@@ -222,7 +222,7 @@ balanced_indices = np.concatenate([majority_indices, oversample_indices])
 X_train_balanced = X_train_scaled[balanced_indices]
 y_train_balanced = y_train.iloc[balanced_indices].values
 
-print(f"    ✓ Class balancing applied: {dict(zip(*np.unique(y_train_balanced, return_counts=True)))}")
+print(f"    [OK] Class balancing applied: {dict(zip(*np.unique(y_train_balanced, return_counts=True)))}")
 
 # =========================
 # PHASE 4: HYPERPARAMETER OPTIMIZATION
@@ -243,7 +243,7 @@ xgb_params = {
     'colsample_bytree': [0.7, 0.8, 0.9]
 }
 
-print("    → Searching XGBoost parameters (18 combinations)...")
+print("    -> Searching XGBoost parameters (18 combinations)...")
 
 xgb_model = XGBClassifier(
     scale_pos_weight=scale_pos_weight,
@@ -269,8 +269,8 @@ xgb_grid = GridSearchCV(
 
 xgb_grid.fit(X_train_balanced, y_train_balanced)
 
-print(f"    ✓ Best XGBoost params: {xgb_grid.best_params_}")
-print(f"    ✓ Best CV F1 score: {xgb_grid.best_score_:.4f}")
+print(f"    [OK] Best XGBoost params: {xgb_grid.best_params_}")
+print(f"    [OK] Best CV F1 score: {xgb_grid.best_score_:.4f}")
 
 xgb_best = xgb_grid.best_estimator_
 
@@ -307,7 +307,7 @@ voting_clf = VotingClassifier(
     weights=[2, 1.5, 1]  # Weight XGBoost more
 )
 
-print("    ✓ Training ensemble: XGBoost + RandomForest + LogisticRegression")
+print("    [OK] Training ensemble: XGBoost + RandomForest + LogisticRegression")
 
 voting_clf.fit(X_train_balanced, y_train_balanced)
 
@@ -390,20 +390,20 @@ print("="*80)
 
 # Save ensemble
 joblib.dump(voting_clf, "models/xgb_ensemble_model.pkl")
-print(f"    ✓ Ensemble model saved -> models/xgb_ensemble_model.pkl")
+print(f"    [OK] Ensemble model saved -> models/xgb_ensemble_model.pkl")
 
 # Save individual models
 joblib.dump(xgb_best, "models/xgb_model_optimized.pkl")
 joblib.dump(rf_model, "models/rf_model.pkl")
-print(f"    ✓ Individual models saved")
+print(f"    [OK] Individual models saved")
 
 # Save scaler
 joblib.dump(scaler, "models/feature_scaler.pkl")
-print(f"    ✓ Feature scaler saved -> models/feature_scaler.pkl")
+print(f"    [OK] Feature scaler saved -> models/feature_scaler.pkl")
 
 # Save feature names
 joblib.dump(FEATURES, "models/feature_names.pkl")
-print(f"    ✓ Feature metadata saved")
+print(f"    [OK] Feature metadata saved")
 
 # =========================
 # SUMMARY REPORT
@@ -426,14 +426,14 @@ for metric, improvement in improvements.items():
     print(f"    {metric:12s}: {direction} {abs(improvement):+.2f}%")
 
 print(f"\n✅ ACHIEVEMENTS")
-print(f"    ✓ Advanced feature engineering (22 features)")
-print(f"    ✓ Hyperparameter optimization via GridSearchCV")
-print(f"    ✓ SMOTE for class imbalance handling")
-print(f"    ✓ Ensemble voting classifier (3 models)")
-print(f"    ✓ Stratified K-Fold cross-validation")
-print(f"    ✓ Robust scaling for outlier resistance")
-print(f"    ✓ Multi-horizon target voting")
-print(f"    ✓ Stratified train-test split")
+print(f"    [OK] Advanced feature engineering (22 features)")
+print(f"    [OK] Hyperparameter optimization via GridSearchCV")
+print(f"    [OK] SMOTE for class imbalance handling")
+print(f"    [OK] Ensemble voting classifier (3 models)")
+print(f"    [OK] Stratified K-Fold cross-validation")
+print(f"    [OK] Robust scaling for outlier resistance")
+print(f"    [OK] Multi-horizon target voting")
+print(f"    [OK] Stratified train-test split")
 
 print(f"\n{'='*80}\n")
 

@@ -1,9 +1,9 @@
 import time
 import pandas as pd
-import yfinance as yf
 
 from scanner.stocks import NIFTY50
 from indicators.technical import add_indicators
+from market_data import download_ohlcv
 from ai.multi_timeframe_engine import multi_timeframe_signal
 from notifications.telegram_alert import send_telegram_alert
 
@@ -24,21 +24,16 @@ def scan_market(symbols=None):
 
             print(f"Scanning {symbol}...")
 
-            df = yf.download(
+            df = download_ohlcv(
                 symbol,
                 period="30d",
                 interval="5m",
-                auto_adjust=True,
-                progress=False,
-                threads=False
+                threads=False,
             )
 
             if df.empty:
                 print(f"{symbol}: No data")
                 continue
-
-            if hasattr(df.columns, "levels"):
-                df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
 
             # Ensure datetime index
             df.index = pd.to_datetime(df.index)

@@ -14,4 +14,4 @@ reasons = explain_signal(latest)
 print("\n===== SIGNAL EXPLANATION =====\n")
 
 for reason in reasons:
-    print("✓", reason)
+    print("-", reason)

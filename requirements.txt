@@ -5,6 +5,10 @@ pandas-ta
 plotly
 streamlit
 scikit-learn
+xgboost
 joblib
 matplotlib
 ta
+reportlab
+openpyxl
+backtesting

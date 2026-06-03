@@ -1,7 +1,30 @@
 import numpy as np
+import pandas as pd
 import pandas_ta as ta
 
+
+def _flatten_ohlcv_columns(df):
+    """Normalize yfinance frames (MultiIndex columns) for indicator math."""
+    if df is None or df.empty:
+        return df
+    df = df.copy()
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+    elif hasattr(df.columns, "levels"):
+        df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
+    rename = {}
+    for col in df.columns:
+        key = str(col).strip().lower()
+        if key in ("open", "high", "low", "close", "volume", "adj close"):
+            rename[col] = key.title() if key != "adj close" else "Adj Close"
+    if rename:
+        df = df.rename(columns=rename)
+    return df
+
+
 def add_indicators(df):
+
+    df = _flatten_ohlcv_columns(df)
 
     # Trend
     df["EMA20"] = ta.ema(df["Close"], length=20)

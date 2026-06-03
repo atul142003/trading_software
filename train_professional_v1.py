@@ -79,14 +79,21 @@ for stock in PROFESSIONAL_STOCKS:
             threads=False,
             progress=False
         )
-        
+
+        if df.empty:
+            print("SKIP (no data)")
+            continue
+
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+
         if len(df) < 500:  # Need sufficient data
             print(f"SKIP (only {len(df)} records)")
             continue
-        
+
         df = df.reset_index()
-        df["Symbol"] = stock
-        df.columns = [str(c).lower() if isinstance(c, str) else c for c in df.columns]
+        df["symbol"] = stock
+        df.columns = [str(c).strip().lower() for c in df.columns]
         
         all_data.append(df)
         successful_stocks.append(stock)
@@ -97,9 +104,12 @@ for stock in PROFESSIONAL_STOCKS:
         continue
 
 # Combine all data
+if not all_data:
+    print("\n    [ERROR] No stock data downloaded. Check network or ticker symbols.")
+    sys.exit(1)
+
 print(f"\n    [OK] Successfully downloaded: {', '.join(successful_stocks)}")
 combined_df = pd.concat(all_data, ignore_index=True)
-combined_df.columns = [str(c).lower() for c in combined_df.columns]
 combined_df = combined_df.sort_values(['symbol', 'date']).reset_index(drop=True)
 
 print(f"    [OK] Total records: {len(combined_df)}")
@@ -143,7 +153,7 @@ df["EMA_diff"] = df["EMA20"] - df["EMA50"]
 df["Price_change"] = df["Close"].pct_change()
 
 close_safe = df["Close"].replace(0, np.nan)
-close_safe = close_safe.fillna(method='ffill').fillna(method='bfill')
+close_safe = close_safe.ffill().bfill()
 
 # Normalized Features
 df["RSI_N"] = df["RSI"] / 100
