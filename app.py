@@ -750,7 +750,7 @@ if st.button("Analyze"):
         xaxis_title='Date',
         yaxis_title='Price',
         template='plotly_dark',
-        height=700,
+        height=500,
         xaxis_rangeslider_visible=True,
         yaxis2=dict(
             title='Volume',
