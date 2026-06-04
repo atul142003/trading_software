@@ -27,7 +27,7 @@ from patterns.candles import detect_pattern
 from ai.explain import explain_signal
 
 st.set_page_config(
-    page_title="AI Trading Software",
+    page_title="ASA Trading",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -80,7 +80,7 @@ st.markdown("""
 # Professional Header
 st.markdown("""
 <div class="main-header">
-    <h1>📈 AI Trading Software</h1>
+    <h1>📈 ASA Trading</h1>
     <p>Advanced AI-Powered Trading Analysis Platform</p>
 </div>
 """, unsafe_allow_html=True)
