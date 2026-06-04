@@ -2,12 +2,17 @@ import subprocess
 import sys
 import webbrowser
 import time
-from threading import Timer
+import threading
+
+browser_opened = False
 
 def open_browser():
-    """Open browser after a delay to ensure Streamlit server is ready."""
-    time.sleep(3)
-    webbrowser.open('http://localhost:8501')
+    """Open browser once to ensure Streamlit server is ready."""
+    global browser_opened
+    if not browser_opened:
+        time.sleep(5)
+        webbrowser.open('http://localhost:8501')
+        browser_opened = True
 
 if __name__ == '__main__':
     print("Starting ASA Trading...")
@@ -18,8 +23,10 @@ if __name__ == '__main__':
     print("Press Ctrl+C to stop the application.")
     print()
     
-    # Start browser in a separate thread
-    Timer(2, open_browser).start()
+    # Start browser in a separate thread (only once)
+    browser_thread = threading.Thread(target=open_browser)
+    browser_thread.daemon = True
+    browser_thread.start()
     
     # Run Streamlit
     try:
