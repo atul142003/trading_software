@@ -1,12 +1,31 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
 
 a = Analysis(
     ['app.py'],
     pathex=[],
     binaries=[],
-    datas=[],
-    hiddenimports=[],
+    datas=[
+        ('icon.png', '.'),
+        ('indicators', 'indicators'),
+        ('market_data', 'market_data'),
+        ('ai', 'ai'),
+        ('patterns', 'patterns'),
+    ],
+    hiddenimports=[
+        'pandas',
+        'numpy',
+        'yfinance',
+        'plotly',
+        'streamlit',
+        'scikit-learn',
+        'xgboost',
+        'joblib',
+        'matplotlib',
+        'openpyxl',
+        'reportlab',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -22,7 +41,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='app',
+    name='ASA_Trading',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -35,4 +54,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='icon.png',
 )
