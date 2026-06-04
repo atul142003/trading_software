@@ -340,7 +340,7 @@ if page == "Dashboard":
             return "color: #ef4444; font-weight: 600;"
         return ""
     
-    styled_trades = trades_df.style.applymap(color_signal, subset=["Signal"])
+    styled_trades = trades_df.style.map(color_signal, subset=["Signal"])
     st.dataframe(styled_trades, use_container_width=True)
     
     st.markdown("---")
