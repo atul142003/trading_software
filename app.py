@@ -42,65 +42,227 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for professional styling
+# Hide Streamlit default elements
+hide_streamlit_style = """
+<style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stApp {background-color: #0a0e27;}
+</style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+# Custom CSS for professional fintech dark theme
 st.markdown("""
 <style>
-    .main-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem;
-        border-radius: 10px;
-        margin-bottom: 2rem;
-        color: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Global styles */
+    .stApp {
+        background-color: #0a0e27;
+        color: #ffffff;
     }
-    .main-header h1 {
-        margin: 0;
-        font-size: 2.5rem;
-        font-weight: 700;
+    
+    /* Main content area */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        background-color: #0a0e27;
     }
-    .main-header p {
-        margin: 0.5rem 0 0 0;
-        opacity: 0.9;
-        font-size: 1.1rem;
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background-color: #0f172a;
+        border-right: 1px solid #1e293b;
     }
-    .metric-card {
-        background: white;
+    
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
+        color: #ffffff;
+    }
+    
+    /* Card-based UI sections */
+    .card {
+        background-color: #1e293b;
+        border-radius: 12px;
         padding: 1.5rem;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         margin: 1rem 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        border: 1px solid #334155;
     }
-    .stButton>button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 5px;
-        padding: 0.5rem 1rem;
+    
+    /* KPI Cards */
+    .kpi-card {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        border: 1px solid #334155;
+        transition: transform 0.3s ease;
+    }
+    
+    .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Metric styling */
+    [data-testid="stMetricValue"] {
+        color: #00d4aa;
+        font-size: 2rem;
         font-weight: 600;
-        transition: all 0.3s;
     }
+    
+    [data-testid="stMetricDelta"] {
+        color: #00d4aa;
+    }
+    
+    /* Buttons */
+    .stButton>button {
+        background: linear-gradient(135deg, #00d4aa 0%, #00a085 100%);
+        color: #0a0e27;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 212, 170, 0.3);
+    }
+    
     .stButton>button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 6px 20px rgba(0, 212, 170, 0.4);
+    }
+    
+    /* Start button */
+    .start-btn {
+        background: linear-gradient(135deg, #00d4aa 0%, #00a085 100%);
+    }
+    
+    /* Stop button */
+    .stop-btn {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+    
+    /* Backtest button */
+    .backtest-btn {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+    
+    /* Dataframe styling */
+    .dataframe {
+        background-color: #1e293b;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .dataframe th {
+        background-color: #0f172a;
+        color: #00d4aa;
+        font-weight: 600;
+    }
+    
+    .dataframe td {
+        color: #ffffff;
+    }
+    
+    /* Input fields */
+    .stTextInput>div>div>input,
+    .stSelectbox>div>div>select,
+    .stNumberInput>div>div>input {
+        background-color: #1e293b;
+        color: #ffffff;
+        border: 1px solid #334155;
+        border-radius: 8px;
+    }
+    
+    /* Headers */
+    h1, h2, h3 {
+        color: #ffffff;
+        font-weight: 600;
+    }
+    
+    /* Success messages */
+    .stSuccess {
+        background-color: rgba(0, 212, 170, 0.1);
+        border: 1px solid #00d4aa;
+        border-radius: 8px;
+    }
+    
+    /* Error messages */
+    .stError {
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid #ef4444;
+        border-radius: 8px;
+    }
+    
+    /* Info messages */
+    .stInfo {
+        background-color: rgba(59, 130, 246, 0.1);
+        border: 1px solid #3b82f6;
+        border-radius: 8px;
+    }
+    
+    /* Warning messages */
+    .stWarning {
+        background-color: rgba(245, 158, 11, 0.1);
+        border: 1px solid #f59e0b;
+        border-radius: 8px;
+    }
+    
+    /* Divider */
+    hr {
+        border-color: #334155;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # Professional Header
 st.markdown(f"""
-<div class="main-header">
-    <div style="display: flex; align-items: center; gap: 1rem;">
-        <img src="data:image/png;base64,{icon_base64}" alt="ASA Trading Icon" style="width: 60px; height: 60px; border-radius: 10px;">
-        <div>
-            <h1 style="margin: 0;">ASA Trading</h1>
-            <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 1.1rem;">Advanced AI-Powered Trading Analysis Platform</p>
-        </div>
+<div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+    <img src="data:image/png;base64,{icon_base64}" alt="ASA Trading Icon" style="width: 50px; height: 50px; border-radius: 10px;">
+    <div>
+        <h1 style="margin: 0; color: #ffffff; font-size: 1.8rem; font-weight: 700;">ASA Trading</h1>
+        <p style="margin: 0.3rem 0 0 0; color: #94a3b8; font-size: 0.9rem;">Professional Trading Terminal</p>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar Navigation
-st.sidebar.title("📊 Navigation")
+# Sidebar Navigation with controls
+st.sidebar.markdown("### 🎛️ Trading Controls")
+st.sidebar.markdown("---")
+
+# Strategy selection
+strategy = st.sidebar.selectbox(
+    "Strategy",
+    ["EMA Crossover", "MACD Strategy", "RSI Strategy", "Bollinger Bands"],
+    key="strategy_select"
+)
+
+# Capital input
+capital = st.sidebar.number_input(
+    "Capital (₹)",
+    min_value=10000,
+    max_value=10000000,
+    value=100000,
+    step=10000,
+    key="capital_input"
+)
+
+# Timeframe selection
+timeframe = st.sidebar.selectbox(
+    "Timeframe",
+    ["1 Min", "5 Min", "15 Min", "30 Min", "1 Hour", "1 Day"],
+    key="timeframe_select"
+)
+
+# Stock selection
+stock = st.sidebar.text_input(
+    "Stock Symbol",
+    "RELIANCE.NS",
+    key="stock_input"
+)
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 📊 Navigation")
 page = st.sidebar.radio(
     "Select Page",
     ["Dashboard", "Market Analysis", "Portfolio", "Risk Management", "Backtesting"],
@@ -115,21 +277,78 @@ if 'portfolio' not in st.session_state:
 if page == "Dashboard":
     st.header("🏠 Dashboard")
     
-    # Quick Stats
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Portfolio Value", "₹100,000", "+0%")
-    with col2:
-        st.metric("Total P&L", "₹0", "0%")
-    with col3:
-        st.metric("Active Positions", "0")
+    # Top KPI Cards
+    col1, col2, col3, col4, col5 = st.columns(5)
     
-    st.divider()
+    with col1:
+        st.metric("Total Profit", "₹25,450", "+12.5%", delta_color="normal")
+    
+    with col2:
+        st.metric("Total Loss", "₹8,200", "-4.1%", delta_color="inverse")
+    
+    with col3:
+        st.metric("Win Rate", "68.5%", "+2.3%", delta_color="normal")
+    
+    with col4:
+        st.metric("Capital", f"₹{capital:,}", "0%", delta_color="normal")
+    
+    with col5:
+        st.metric("Active Trades", "3", "+1", delta_color="normal")
+    
+    st.markdown("---")
+    
+    # Bot Control Buttons
+    col_start, col_stop, col_backtest = st.columns(3)
+    
+    with col_start:
+        if st.button("▶️ Start Bot", key="start_bot", use_container_width=True):
+            st.toast("✅ Bot started successfully!", icon="🚀")
+            st.success("Bot started successfully!")
+    
+    with col_stop:
+        if st.button("⏹️ Stop Bot", key="stop_bot", use_container_width=True):
+            st.toast("⚠️ Bot stopped!", icon="⏹️")
+            st.warning("Bot stopped!")
+    
+    with col_backtest:
+        if st.button("🔙 Backtest Strategy", key="backtest_strategy", use_container_width=True):
+            st.toast("🔄 Backtest initiated...", icon="📊")
+            st.info("Backtest initiated...")
+    
+    st.markdown("---")
+    
+    # Live Trades Table
+    st.subheader("📋 Live Trades")
+    
+    # Sample trade data
+    trades_data = {
+        "Time": ["10:30:15", "10:45:22", "11:02:08"],
+        "Symbol": ["RELIANCE.NS", "TCS.NS", "INFY.NS"],
+        "Signal": ["BUY", "SELL", "BUY"],
+        "Price": ["₹2,450.50", "₹3,520.75", "₹1,450.25"],
+        "Quantity": [10, 5, 20],
+        "Status": ["Executed", "Executed", "Pending"]
+    }
+    
+    trades_df = pd.DataFrame(trades_data)
+    
+    # Color-code signals
+    def color_signal(val):
+        if val == "BUY":
+            return "color: #00d4aa; font-weight: 600;"
+        elif val == "SELL":
+            return "color: #ef4444; font-weight: 600;"
+        return ""
+    
+    styled_trades = trades_df.style.applymap(color_signal, subset=["Signal"])
+    st.dataframe(styled_trades, use_container_width=True)
+    
+    st.markdown("---")
     
     # Symbol Input
     symbol = st.text_input(
         "Enter Symbol for Analysis",
-        "RELIANCE.NS",
+        stock,
         key="dashboard_symbol"
     )
     
@@ -150,12 +369,38 @@ if page == "Dashboard":
                     high=df['High'],
                     low=df['Low'],
                     close=df['Close'],
-                    name='OHLC'
+                    name='OHLC',
+                    increasing_line_color='#00d4aa',
+                    decreasing_line_color='#ef4444'
                 ))
+                
+                # Add EMA lines
+                if 'EMA20' in df.columns:
+                    fig.add_trace(go.Scatter(
+                        x=df.index,
+                        y=df['EMA20'],
+                        name='EMA 20',
+                        line=dict(color='#3b82f6', width=1),
+                        opacity=0.7
+                    ))
+                
+                if 'EMA50' in df.columns:
+                    fig.add_trace(go.Scatter(
+                        x=df.index,
+                        y=df['EMA50'],
+                        name='EMA 50',
+                        line=dict(color='#f59e0b', width=1),
+                        opacity=0.7
+                    ))
+                
                 fig.update_layout(
                     title=f'{symbol} Price Chart',
                     template='plotly_dark',
-                    height=400
+                    height=400,
+                    xaxis_rangeslider_visible=False,
+                    paper_bgcolor='#0a0e27',
+                    plot_bgcolor='#1e293b',
+                    font=dict(color='#ffffff')
                 )
                 st.plotly_chart(fig, use_container_width=True)
                 
