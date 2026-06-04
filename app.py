@@ -312,58 +312,28 @@ elif page == "Market Analysis":
             
             prediction, confidence = predict_direction(features)
             
-            # =========================
-            # MAIN ANALYSIS
-            # =========================
-            
-            st.subheader("Analysis Results")
-            
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                st.metric("Trend", trend)
-            
-            with col2:
-                st.metric("Signal", signal)
-            
-            with col3:
-                st.metric("Pattern", pattern)
-            
-            st.metric(
-                "AI Prediction",
-                f"{prediction} ({confidence}%)"
-            )
-            
-            # =========================
-            # INDICATORS
-            # =========================
-            
-            st.subheader("Technical Indicators")
-            
-            indicator_data = {
-                "RSI": round(latest["RSI"], 2),
-                "MACD": round(latest["MACD"], 2),
-                "EMA20": round(latest["EMA20"], 2),
-                "EMA50": round(latest["EMA50"], 2),
-                "EMA200": round(latest["EMA200"], 2),
-                "ATR": round(latest["ATR"], 2),
-                "ADX": round(latest["ADX"], 2)
+            # Store in session state for export
+            st.session_state.analysis_data = {
+                'df': df,
+                'indicator_data': {
+                    "RSI": round(latest["RSI"], 2),
+                    "MACD": round(latest["MACD"], 2),
+                    "EMA20": round(latest["EMA20"], 2),
+                    "EMA50": round(latest["EMA50"], 2),
+                    "EMA200": round(latest["EMA200"], 2),
+                    "ATR": round(latest["ATR"], 2),
+                    "ADX": round(latest["ADX"], 2)
+                },
+                'trend': trend,
+                'signal': signal,
+                'pattern': pattern,
+                'prediction': prediction,
+                'confidence': confidence,
+                'reasons': reasons,
+                'symbol': symbol
             }
             
-            st.dataframe(
-                pd.DataFrame(
-                    indicator_data.items(),
-                    columns=["Indicator", "Value"]
-                ),
-                width="stretch"
-            )
-            
-            # =========================
-            # MULTI TIMEFRAME ANALYSIS
-            # =========================
-            
-            st.subheader("Multi-Timeframe Analysis")
-            
+            # Multi-Timeframe Analysis
             timeframes = {
                 "1 Min": ("1m", "7d"),
                 "5 Min": ("5m", "30d"),
@@ -397,6 +367,52 @@ elif page == "Market Analysis":
                         "RSI": "",
                         "ADX": ""
                     })
+            
+            st.session_state.analysis_data['multi_timeframe'] = results
+            
+            # =========================
+            # MAIN ANALYSIS
+            # =========================
+            
+            st.subheader("Analysis Results")
+            
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.metric("Trend", trend)
+            
+            with col2:
+                st.metric("Signal", signal)
+            
+            with col3:
+                st.metric("Pattern", pattern)
+            
+            st.metric(
+                "AI Prediction",
+                f"{prediction} ({confidence}%)"
+            )
+            
+            # =========================
+            # INDICATORS
+            # =========================
+            
+            st.subheader("Technical Indicators")
+            
+            indicator_data = st.session_state.analysis_data['indicator_data']
+            
+            st.dataframe(
+                pd.DataFrame(
+                    indicator_data.items(),
+                    columns=["Indicator", "Value"]
+                ),
+                width="stretch"
+            )
+            
+            # =========================
+            # MULTI TIMEFRAME ANALYSIS
+            # =========================
+            
+            st.subheader("Multi-Timeframe Analysis")
             
             st.dataframe(
                 pd.DataFrame(results),
@@ -521,8 +537,75 @@ elif page == "Market Analysis":
                 df.tail(10),
                 width="stretch"
             )
+        
+        # =========================
+        # LIVE TRADING TERMINAL
+        # =========================
+        
+        st.divider()
+        st.subheader("📡 Live Trading Terminal")
+        
+        live_terminal = st.checkbox("Enable Live Terminal (1-second updates)", value=False)
+        
+        if live_terminal:
+            terminal_placeholder = st.empty()
             
-            # Export Analysis
+            while live_terminal:
+                try:
+                    live_data = get_live_market_data(symbol)
+                    
+                    if "error" not in live_data:
+                        with terminal_placeholder.container():
+                            col1, col2, col3, col4 = st.columns(4)
+                            
+                            with col1:
+                                change_color = "normal" if live_data["change"] >= 0 else "inverse"
+                                st.metric(
+                                    "Current Price",
+                                    f"₹{live_data['current_price']}",
+                                    f"{live_data['change']:+.2f} ({live_data['change_percent']:+.2f}%)",
+                                    delta_color=change_color
+                                )
+                            
+                            with col2:
+                                st.metric("Day High", f"₹{live_data['high']}")
+                            
+                            with col3:
+                                st.metric("Day Low", f"₹{live_data['low']}")
+                            
+                            with col4:
+                                st.metric("Volume", f"{live_data['volume']:,}")
+                            
+                            col5, col6, col7 = st.columns(3)
+                            
+                            with col5:
+                                st.metric("Open", f"₹{live_data['open']}")
+                            
+                            with col6:
+                                st.metric("52W High", f"₹{live_data['52w_high']}")
+                            
+                            with col7:
+                                st.metric("52W Low", f"₹{live_data['52w_low']}")
+                            
+                            market_cap_cr = live_data['market_cap'] / 10000000
+                            st.metric("Market Cap", f"₹{market_cap_cr:.2f} Cr")
+                            
+                            # Real-time indicator
+                            st.info(f"⏱️ Last updated: {pd.Timestamp.now().strftime('%H:%M:%S')}")
+                    
+                    time.sleep(1)
+                    st.rerun()
+                
+                except Exception as e:
+                    st.error(f"Error in live terminal: {str(e)}")
+                    time.sleep(5)
+                    st.rerun()
+        
+        # =========================
+        # EXPORT ANALYSIS
+        # =========================
+        
+        if 'analysis_data' in st.session_state:
             st.divider()
             st.subheader("📥 Export Analysis")
             
@@ -532,15 +615,15 @@ elif page == "Market Analysis":
                 if st.button("Export Analysis to Excel", key="export_analysis_excel"):
                     try:
                         analysis_data = {
-                            "Technical Indicators": pd.DataFrame([indicator_data]),
-                            "Multi-Timeframe Analysis": pd.DataFrame(results),
-                            "Recent Market Data": df.tail(10)
+                            "Technical Indicators": pd.DataFrame([st.session_state.analysis_data['indicator_data']]),
+                            "Multi-Timeframe Analysis": pd.DataFrame(st.session_state.analysis_data['multi_timeframe']),
+                            "Recent Market Data": st.session_state.analysis_data['df'].tail(10)
                         }
                         excel_data = export_to_excel(analysis_data)
                         st.download_button(
                             label="Download Excel",
                             data=excel_data,
-                            file_name=f"{symbol}_analysis.xlsx",
+                            file_name=f"{st.session_state.analysis_data['symbol']}_analysis.xlsx",
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                         )
                     except ImportError as e:
@@ -552,21 +635,23 @@ elif page == "Market Analysis":
                 if st.button("Export Analysis to PDF", key="export_analysis_pdf"):
                     try:
                         analysis_data = {
-                            "Technical Indicators": indicator_data,
-                            "Multi-Timeframe Analysis": results,
-                            "Recent Market Data": df.tail(10)
+                            "Technical Indicators": st.session_state.analysis_data['indicator_data'],
+                            "Multi-Timeframe Analysis": st.session_state.analysis_data['multi_timeframe'],
+                            "Recent Market Data": st.session_state.analysis_data['df'].tail(10)
                         }
-                        pdf_data = export_to_pdf(analysis_data, f"{symbol} Analysis Report")
+                        pdf_data = export_to_pdf(analysis_data, f"{st.session_state.analysis_data['symbol']} Analysis Report")
                         st.download_button(
                             label="Download PDF",
                             data=pdf_data,
-                            file_name=f"{symbol}_analysis.pdf",
+                            file_name=f"{st.session_state.analysis_data['symbol']}_analysis.pdf",
                             mime="application/pdf"
                         )
                     except ImportError as e:
                         st.error(f"PDF export requires reportlab. Install with: pip install reportlab")
                     except Exception as e:
                         st.error(f"Export failed: {str(e)}")
+        else:
+            st.info("👈 Click 'Analyze' button first to generate analysis data for export")
 
 # Portfolio Page
 elif page == "Portfolio":
