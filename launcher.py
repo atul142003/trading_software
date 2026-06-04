@@ -3,6 +3,7 @@ import sys
 import webbrowser
 import time
 import threading
+import os
 
 browser_opened = False
 
@@ -30,7 +31,14 @@ if __name__ == '__main__':
     
     # Run Streamlit
     try:
-        subprocess.run([sys.executable, '-m', 'streamlit', 'run', 'app.py'])
+        # Check if running from PyInstaller executable
+        if getattr(sys, 'frozen', False):
+            # Running from PyInstaller executable
+            # Use the bundled Python to run streamlit
+            subprocess.run(['streamlit', 'run', 'app.py'], shell=True)
+        else:
+            # Running normally
+            subprocess.run([sys.executable, '-m', 'streamlit', 'run', 'app.py'])
     except KeyboardInterrupt:
         print("\nApplication stopped.")
     except Exception as e:
