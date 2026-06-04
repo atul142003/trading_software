@@ -4,11 +4,12 @@ import os
 from PyInstaller.utils.hooks import collect_submodules, collect_data_files
 
 a = Analysis(
-    ['app.py'],
+    ['launcher.py'],
     pathex=[],
     binaries=[],
     datas=[
         ('icon.png', '.'),
+        ('app.py', '.'),
     ] + collect_data_files('indicators') + collect_data_files('market_data') + collect_data_files('ai') + collect_data_files('patterns'),
     hiddenimports=[
         'pandas',
@@ -22,6 +23,9 @@ a = Analysis(
         'matplotlib',
         'openpyxl',
         'reportlab',
+        'subprocess',
+        'webbrowser',
+        'threading',
     ] + collect_submodules('indicators') + collect_submodules('market_data') + collect_submodules('ai') + collect_submodules('patterns'),
     hookspath=[],
     hooksconfig={},
