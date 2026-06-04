@@ -80,8 +80,13 @@ st.markdown("""
 # Professional Header
 st.markdown("""
 <div class="main-header">
-    <h1>📈 ASA Trading</h1>
-    <p>Advanced AI-Powered Trading Analysis Platform</p>
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <img src="icon.png" alt="ASA Trading Icon" style="width: 60px; height: 60px; border-radius: 10px;">
+        <div>
+            <h1 style="margin: 0;">ASA Trading</h1>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 1.1rem;">Advanced AI-Powered Trading Analysis Platform</p>
+        </div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
