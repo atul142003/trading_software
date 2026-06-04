@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import time
+import base64
 
 from indicators.technical import add_indicators
 from market_data import (
@@ -25,6 +26,14 @@ from ai.predict import predict_direction
 from ai.multi_timeframe import analyze_timeframe
 from patterns.candles import detect_pattern
 from ai.explain import explain_signal
+
+# Function to convert image to base64
+def img_to_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
+
+# Get base64 encoded icon
+icon_base64 = img_to_base64("icon.png")
 
 st.set_page_config(
     page_title="ASA Trading",
@@ -78,10 +87,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Professional Header
-st.markdown("""
+st.markdown(f"""
 <div class="main-header">
     <div style="display: flex; align-items: center; gap: 1rem;">
-        <img src="icon.png" alt="ASA Trading Icon" style="width: 60px; height: 60px; border-radius: 10px;">
+        <img src="data:image/png;base64,{icon_base64}" alt="ASA Trading Icon" style="width: 60px; height: 60px; border-radius: 10px;">
         <div>
             <h1 style="margin: 0;">ASA Trading</h1>
             <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 1.1rem;">Advanced AI-Powered Trading Analysis Platform</p>
