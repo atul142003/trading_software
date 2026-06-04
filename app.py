@@ -276,6 +276,297 @@ elif page == "Market Analysis":
                 
                 time.sleep(30)
                 st.rerun()
+        
+        st.divider()
+        
+        # =========================
+        # ANALYZE BUTTON
+        # =========================
+        
+        if st.button("Analyze", key="analyze_btn"):
+            # Download Daily Data
+            df = download_ohlcv(symbol, period="2y", interval="1d")
+            
+            if len(df) == 0:
+                st.error("No data found.")
+                st.stop()
+            
+            # Add Indicators
+            df = add_indicators(df)
+            
+            latest = df.iloc[-1]
+            reasons = explain_signal(latest)
+            
+            # Core Analysis
+            trend = detect_trend(latest)
+            signal = generate_signal(latest)
+            pattern = detect_pattern(df)
+            
+            # AI Prediction
+            features = [
+                latest["RSI"],
+                latest["EMA20"],
+                latest["EMA50"],
+                latest["MACD"]
+            ]
+            
+            prediction, confidence = predict_direction(features)
+            
+            # =========================
+            # MAIN ANALYSIS
+            # =========================
+            
+            st.subheader("Analysis Results")
+            
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.metric("Trend", trend)
+            
+            with col2:
+                st.metric("Signal", signal)
+            
+            with col3:
+                st.metric("Pattern", pattern)
+            
+            st.metric(
+                "AI Prediction",
+                f"{prediction} ({confidence}%)"
+            )
+            
+            # =========================
+            # INDICATORS
+            # =========================
+            
+            st.subheader("Technical Indicators")
+            
+            indicator_data = {
+                "RSI": round(latest["RSI"], 2),
+                "MACD": round(latest["MACD"], 2),
+                "EMA20": round(latest["EMA20"], 2),
+                "EMA50": round(latest["EMA50"], 2),
+                "EMA200": round(latest["EMA200"], 2),
+                "ATR": round(latest["ATR"], 2),
+                "ADX": round(latest["ADX"], 2)
+            }
+            
+            st.dataframe(
+                pd.DataFrame(
+                    indicator_data.items(),
+                    columns=["Indicator", "Value"]
+                ),
+                width="stretch"
+            )
+            
+            # =========================
+            # MULTI TIMEFRAME ANALYSIS
+            # =========================
+            
+            st.subheader("Multi-Timeframe Analysis")
+            
+            timeframes = {
+                "1 Min": ("1m", "7d"),
+                "5 Min": ("5m", "30d"),
+                "15 Min": ("15m", "60d"),
+                "30 Min": ("30m", "60d"),
+                "1 Hour": ("60m", "730d"),
+                "1 Day": ("1d", "2y")
+            }
+            
+            results = []
+            
+            for name, (interval, period) in timeframes.items():
+                try:
+                    result = analyze_timeframe(
+                        symbol,
+                        interval,
+                        period
+                    )
+                    
+                    if result:
+                        results.append({
+                            "Timeframe": name,
+                            **result
+                        })
+                
+                except Exception as e:
+                    results.append({
+                        "Timeframe": name,
+                        "Trend": "Error",
+                        "Signal": str(e),
+                        "RSI": "",
+                        "ADX": ""
+                    })
+            
+            st.dataframe(
+                pd.DataFrame(results),
+                width="stretch"
+            )
+            
+            st.subheader("Signal Explanation")
+            
+            for reason in reasons:
+                st.markdown(f"✓ {reason}")
+            
+            # =========================
+            # PRICE CHART
+            # =========================
+            
+            st.subheader("Price Chart")
+            
+            # Add auto-refresh controls
+            col_refresh1, col_refresh2 = st.columns([2, 1])
+            with col_refresh1:
+                chart_auto_refresh = st.checkbox("Auto-refresh chart", value=False, key="chart_auto_refresh")
+            with col_refresh2:
+                if chart_auto_refresh:
+                    refresh_interval = st.selectbox(
+                        "Refresh every",
+                        [5, 10, 30, 60],
+                        index=1,
+                        key="chart_refresh_interval"
+                    )
+                    st.write(f"seconds")
+            
+            # Create candlestick chart with professional features
+            fig = go.Figure()
+            
+            # Add candlestick
+            fig.add_trace(go.Candlestick(
+                x=df.index,
+                open=df['Open'],
+                high=df['High'],
+                low=df['Low'],
+                close=df['Close'],
+                name='OHLC',
+                increasing_line_color='#00ff00',
+                decreasing_line_color='#ff0000'
+            ))
+            
+            # Add volume bars
+            fig.add_trace(go.Bar(
+                x=df.index,
+                y=df['Volume'],
+                name='Volume',
+                yaxis='y2',
+                marker_color='rgba(128, 128, 128, 0.3)',
+                opacity=0.3
+            ))
+            
+            # Add moving averages
+            if 'EMA20' in df.columns:
+                fig.add_trace(go.Scatter(
+                    x=df.index,
+                    y=df['EMA20'],
+                    name='EMA20',
+                    line=dict(color='yellow', width=1),
+                    opacity=0.7
+                ))
+            
+            if 'EMA50' in df.columns:
+                fig.add_trace(go.Scatter(
+                    x=df.index,
+                    y=df['EMA50'],
+                    name='EMA50',
+                    line=dict(color='orange', width=1),
+                    opacity=0.7
+                ))
+            
+            if 'EMA200' in df.columns:
+                fig.add_trace(go.Scatter(
+                    x=df.index,
+                    y=df['EMA200'],
+                    name='EMA200',
+                    line=dict(color='blue', width=1),
+                    opacity=0.7
+                ))
+            
+            # Update layout for professional trading terminal
+            fig.update_layout(
+                title=f'{symbol} Professional Trading Terminal',
+                xaxis_title='Date',
+                yaxis_title='Price',
+                template='plotly_dark',
+                height=500,
+                xaxis_rangeslider_visible=True,
+                yaxis2=dict(
+                    title='Volume',
+                    overlaying='y',
+                    side='right',
+                    showgrid=False
+                ),
+                hovermode='x unified',
+                legend=dict(
+                    yanchor="top",
+                    y=0.99,
+                    xanchor="left",
+                    x=0.01
+                )
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Auto-refresh logic
+            if chart_auto_refresh:
+                time.sleep(refresh_interval)
+                st.rerun()
+            
+            # =========================
+            # LAST 10 CANDLES
+            # =========================
+            
+            st.subheader("Recent Market Data")
+            
+            st.dataframe(
+                df.tail(10),
+                width="stretch"
+            )
+            
+            # Export Analysis
+            st.divider()
+            st.subheader("📥 Export Analysis")
+            
+            col_exp1, col_exp2 = st.columns(2)
+            
+            with col_exp1:
+                if st.button("Export Analysis to Excel", key="export_analysis_excel"):
+                    try:
+                        analysis_data = {
+                            "Technical Indicators": pd.DataFrame([indicator_data]),
+                            "Multi-Timeframe Analysis": pd.DataFrame(results),
+                            "Recent Market Data": df.tail(10)
+                        }
+                        excel_data = export_to_excel(analysis_data)
+                        st.download_button(
+                            label="Download Excel",
+                            data=excel_data,
+                            file_name=f"{symbol}_analysis.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
+                    except ImportError as e:
+                        st.error(f"Excel export requires openpyxl. Install with: pip install openpyxl")
+                    except Exception as e:
+                        st.error(f"Export failed: {str(e)}")
+            
+            with col_exp2:
+                if st.button("Export Analysis to PDF", key="export_analysis_pdf"):
+                    try:
+                        analysis_data = {
+                            "Technical Indicators": indicator_data,
+                            "Multi-Timeframe Analysis": results,
+                            "Recent Market Data": df.tail(10)
+                        }
+                        pdf_data = export_to_pdf(analysis_data, f"{symbol} Analysis Report")
+                        st.download_button(
+                            label="Download PDF",
+                            data=pdf_data,
+                            file_name=f"{symbol}_analysis.pdf",
+                            mime="application/pdf"
+                        )
+                    except ImportError as e:
+                        st.error(f"PDF export requires reportlab. Install with: pip install reportlab")
+                    except Exception as e:
+                        st.error(f"Export failed: {str(e)}")
 
 # Portfolio Page
 elif page == "Portfolio":
@@ -550,4 +841,214 @@ elif page == "Risk Management":
 # Backtesting Page
 elif page == "Backtesting":
     st.header("📊 Backtesting")
-    st.info("Backtesting functionality coming soon. Use Market Analysis for now.")
+    symbol = st.text_input("Enter Symbol", "RELIANCE.NS", key="backtest_symbol")
+    
+    if symbol:
+        if st.button("Run Backtest", key="run_backtest_btn"):
+            with st.spinner("Running backtest..."):
+                df = download_ohlcv(symbol, period="2y", interval="1d")
+                
+                if len(df) == 0:
+                    st.error("No data found.")
+                    st.stop()
+                
+                df = add_indicators(df)
+                backtest_results = run_backtest(df, "EMARSIMACDStrategy")
+                
+                if "error" in backtest_results:
+                    st.error(f"Backtest failed: {backtest_results['error']}")
+                else:
+                    # Display key metrics
+                    col1, col2, col3, col4 = st.columns(4)
+                    
+                    with col1:
+                        return_color = "normal" if backtest_results["Return (%)"] >= 0 else "inverse"
+                        st.metric(
+                            "Total Return",
+                            f"{backtest_results['Return (%)']}%",
+                            delta_color=return_color
+                        )
+                    
+                    with col2:
+                        st.metric("Sharpe Ratio", backtest_results["Sharpe Ratio"])
+                    
+                    with col3:
+                        st.metric("Win Rate", f"{backtest_results['Win Rate (%)']}%")
+                    
+                    with col4:
+                        dd_color = "inverse" if backtest_results["Max Drawdown (%)"] < 0 else "normal"
+                        st.metric(
+                            "Max Drawdown",
+                            f"{backtest_results['Max Drawdown (%)']}%",
+                            delta_color=dd_color
+                        )
+                    
+                    # Additional metrics
+                    col5, col6, col7 = st.columns(3)
+                    
+                    with col5:
+                        st.metric("Total Trades", backtest_results["Total Trades"])
+                    
+                    with col6:
+                        st.metric("Profit Factor", backtest_results["Profit Factor"])
+                    
+                    with col7:
+                        st.metric("Final Equity", f"₹{backtest_results['Final Equity']:,.2f}")
+                    
+                    # Detailed results table
+                    st.subheader("Detailed Backtest Metrics")
+                    
+                    detailed_metrics = {
+                        "Metric": [
+                            "Return (%)",
+                            "Sharpe Ratio",
+                            "Max Drawdown (%)",
+                            "Win Rate (%)",
+                            "Total Trades",
+                            "Avg Trade (%)",
+                            "Best Trade (%)",
+                            "Worst Trade (%)",
+                            "Profit Factor",
+                            "Expectancy (%)",
+                            "Final Equity ($)",
+                            "Avg Trade Duration"
+                        ],
+                        "Value": [
+                            backtest_results["Return (%)"],
+                            backtest_results["Sharpe Ratio"],
+                            backtest_results["Max Drawdown (%)"],
+                            backtest_results["Win Rate (%)"],
+                            backtest_results["Total Trades"],
+                            backtest_results["Avg Trade (%)"],
+                            backtest_results["Best Trade (%)"],
+                            backtest_results["Worst Trade (%)"],
+                            backtest_results["Profit Factor"],
+                            backtest_results["Expectancy"],
+                            backtest_results["Final Equity"],
+                            backtest_results["Avg Trade Duration"]
+                        ]
+                    }
+                    
+                    st.dataframe(
+                        pd.DataFrame(detailed_metrics),
+                        width="stretch"
+                    )
+                    
+                    # Trade History
+                    if 'trades' in backtest_results and not backtest_results['trades'].empty:
+                        st.subheader("📜 Trade History")
+                        
+                        trades_df = backtest_results['trades'].copy()
+                        
+                        # Format the trades dataframe for better display
+                        if 'EntryTime' in trades_df.columns:
+                            trades_df['EntryTime'] = pd.to_datetime(trades_df['EntryTime'])
+                        if 'ExitTime' in trades_df.columns:
+                            trades_df['ExitTime'] = pd.to_datetime(trades_df['ExitTime'])
+                        
+                        # Calculate PnL percentage if not present
+                        if 'PnL' in trades_df.columns and 'EntryPrice' in trades_df.columns:
+                            trades_df['PnL %'] = (trades_df['PnL'] / trades_df['EntryPrice'] * 100).round(2)
+                        
+                        # Select and rename columns for display
+                        display_columns = []
+                        column_mapping = {}
+                        
+                        if 'EntryTime' in trades_df.columns:
+                            display_columns.append('EntryTime')
+                            column_mapping['EntryTime'] = 'Entry Date'
+                        if 'ExitTime' in trades_df.columns:
+                            display_columns.append('ExitTime')
+                            column_mapping['ExitTime'] = 'Exit Date'
+                        if 'EntryPrice' in trades_df.columns:
+                            display_columns.append('EntryPrice')
+                            column_mapping['EntryPrice'] = 'Entry Price (₹)'
+                        if 'ExitPrice' in trades_df.columns:
+                            display_columns.append('ExitPrice')
+                            column_mapping['ExitPrice'] = 'Exit Price (₹)'
+                        if 'Size' in trades_df.columns:
+                            display_columns.append('Size')
+                            column_mapping['Size'] = 'Quantity'
+                        if 'PnL' in trades_df.columns:
+                            display_columns.append('PnL')
+                            column_mapping['PnL'] = 'PnL (₹)'
+                        if 'PnL %' in trades_df.columns:
+                            display_columns.append('PnL %')
+                            column_mapping['PnL %'] = 'PnL (%)'
+                        if 'Duration' in trades_df.columns:
+                            display_columns.append('Duration')
+                            column_mapping['Duration'] = 'Duration'
+                        
+                        if display_columns:
+                            trades_display = trades_df[display_columns].copy()
+                            trades_display = trades_display.rename(columns=column_mapping)
+                            
+                            # Add win/loss indicator
+                            if 'PnL (₹)' in trades_display.columns:
+                                trades_display['Result'] = trades_display['PnL (₹)'].apply(
+                                    lambda x: '✅ WIN' if x > 0 else '❌ LOSS'
+                                )
+                            
+                            st.dataframe(
+                                trades_display,
+                                width="stretch",
+                                use_container_width=True
+                            )
+                            
+                            # Trade summary
+                            winning_trades = len(trades_df[trades_df['PnL'] > 0]) if 'PnL' in trades_df.columns else 0
+                            losing_trades = len(trades_df[trades_df['PnL'] < 0]) if 'PnL' in trades_df.columns else 0
+                            
+                            col1, col2, col3 = st.columns(3)
+                            with col1:
+                                st.metric("Winning Trades", winning_trades)
+                            with col2:
+                                st.metric("Losing Trades", losing_trades)
+                            with col3:
+                                st.metric("Win/Loss Ratio", f"{winning_trades}:{losing_trades}" if losing_trades > 0 else f"{winning_trades}:0")
+                    else:
+                        st.info("No trade history available for this backtest.")
+                    
+                    # Export Backtest Results
+                    st.divider()
+                    st.subheader("📥 Export Backtest Results")
+                    
+                    col_bexp1, col_bexp2 = st.columns(2)
+                    
+                    with col_bexp1:
+                        if st.button("Export Backtest to Excel", key="export_backtest_excel"):
+                            try:
+                                backtest_data = {
+                                    "Backtest Metrics": pd.DataFrame([backtest_results]),
+                                    "Trade History": trades_df if 'trades_df' in locals() else pd.DataFrame()
+                                }
+                                excel_data = export_to_excel(backtest_data)
+                                st.download_button(
+                                    label="Download Excel",
+                                    data=excel_data,
+                                    file_name=f"{symbol}_backtest.xlsx",
+                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                )
+                            except ImportError as e:
+                                st.error(f"Excel export requires openpyxl. Install with: pip install openpyxl")
+                            except Exception as e:
+                                st.error(f"Export failed: {str(e)}")
+                    
+                    with col_bexp2:
+                        if st.button("Export Backtest to PDF", key="export_backtest_pdf"):
+                            try:
+                                backtest_data = {
+                                    "Backtest Metrics": backtest_results,
+                                    "Trade History": trades_df if 'trades_df' in locals() else pd.DataFrame()
+                                }
+                                pdf_data = export_to_pdf(backtest_data, f"{symbol} Backtest Report")
+                                st.download_button(
+                                    label="Download PDF",
+                                    data=pdf_data,
+                                    file_name=f"{symbol}_backtest.pdf",
+                                    mime="application/pdf"
+                                )
+                            except ImportError as e:
+                                st.error(f"PDF export requires reportlab. Install with: pip install reportlab")
+                            except Exception as e:
+                                st.error(f"Export failed: {str(e)}")
