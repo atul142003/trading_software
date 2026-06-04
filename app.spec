@@ -1,6 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import os
+from PyInstaller.utils.hooks import collect_submodules, collect_data_files
 
 a = Analysis(
     ['app.py'],
@@ -8,11 +9,7 @@ a = Analysis(
     binaries=[],
     datas=[
         ('icon.png', '.'),
-        ('indicators', 'indicators'),
-        ('market_data', 'market_data'),
-        ('ai', 'ai'),
-        ('patterns', 'patterns'),
-    ],
+    ] + collect_data_files('indicators') + collect_data_files('market_data') + collect_data_files('ai') + collect_data_files('patterns'),
     hiddenimports=[
         'pandas',
         'numpy',
@@ -25,7 +22,7 @@ a = Analysis(
         'matplotlib',
         'openpyxl',
         'reportlab',
-    ],
+    ] + collect_submodules('indicators') + collect_submodules('market_data') + collect_submodules('ai') + collect_submodules('patterns'),
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
