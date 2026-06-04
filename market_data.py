@@ -3,6 +3,9 @@
 import pandas as pd
 import yfinance as yf
 import io
+import time
+from functools import lru_cache
+from datetime import datetime, timedelta
 
 # Optional backtesting dependencies
 try:
@@ -75,16 +78,56 @@ def download_with_fallback(
     return pd.DataFrame(), None
 
 
-def get_live_market_data(symbol: str) -> dict:
-    """Get real-time market data for a symbol."""
+# Rate limiting cache
+_live_data_cache = {}
+_last_request_time = {}
+_rate_limit_delay = 2  # seconds between requests
+
+
+def get_live_market_data(symbol: str, use_cache: bool = True) -> dict:
+    """Get real-time market data for a symbol with rate limiting and caching."""
+    
+    # Check cache first
+    cache_key = f"{symbol}_{datetime.now().strftime('%Y-%m-%d-%H')}"  # Cache per hour
+    if use_cache and cache_key in _live_data_cache:
+        cached_time = _live_data_cache[cache_key]['timestamp']
+        # Use cache if less than 5 minutes old
+        if datetime.now() - cached_time < timedelta(minutes=5):
+            return _live_data_cache[cache_key]['data']
+    
+    # Rate limiting: check last request time
+    if symbol in _last_request_time:
+        time_since_last = (datetime.now() - _last_request_time[symbol]).total_seconds()
+        if time_since_last < _rate_limit_delay:
+            time.sleep(_rate_limit_delay - time_since_last)
+    
     try:
         ticker = yf.Ticker(symbol)
-        info = ticker.info
         
-        # Get the most recent price data
-        df = ticker.history(period="1d", interval="1m")
-        if df.empty:
-            df = ticker.history(period="5d", interval="1d")
+        # Try to get info with rate limiting
+        try:
+            info = ticker.info
+        except Exception as e:
+            if "Too Many Requests" in str(e) or "rate limit" in str(e).lower():
+                # Return cached data if available, or error
+                if cache_key in _live_data_cache:
+                    return _live_data_cache[cache_key]['data']
+                return {
+                    "symbol": symbol,
+                    "error": "Rate limited. Please wait a few minutes before trying again."
+                }
+            raise
+        
+        # Get the most recent price data with fallback
+        try:
+            df = ticker.history(period="1d", interval="1m")
+            if df.empty:
+                df = ticker.history(period="5d", interval="1d")
+        except Exception as e:
+            if "Too Many Requests" in str(e) or "rate limit" in str(e).lower():
+                df = pd.DataFrame()
+            else:
+                raise
         
         if not df.empty:
             latest = df.iloc[-1]
@@ -100,7 +143,7 @@ def get_live_market_data(symbol: str) -> dict:
             change_percent = (change / prev_close) * 100 if prev_close != 0 else 0
             volume = info.get('volume', 0)
         
-        return {
+        result = {
             "symbol": symbol,
             "current_price": round(current_price, 2),
             "change": round(change, 2),
@@ -114,10 +157,29 @@ def get_live_market_data(symbol: str) -> dict:
             "52w_high": info.get('fiftyTwoWeekHigh', 0),
             "52w_low": info.get('fiftyTwoWeekLow', 0),
         }
+        
+        # Update cache
+        _live_data_cache[cache_key] = {
+            'data': result,
+            'timestamp': datetime.now()
+        }
+        _last_request_time[symbol] = datetime.now()
+        
+        return result
+        
     except Exception as e:
+        error_msg = str(e)
+        if "Too Many Requests" in error_msg or "rate limit" in error_msg.lower():
+            # Return cached data if available
+            if cache_key in _live_data_cache:
+                return _live_data_cache[cache_key]['data']
+            return {
+                "symbol": symbol,
+                "error": "Rate limited. Please wait a few minutes before trying again."
+            }
         return {
             "symbol": symbol,
-            "error": str(e)
+            "error": f"Error fetching data: {error_msg}"
         }
 
 
