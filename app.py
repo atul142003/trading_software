@@ -790,7 +790,7 @@ elif page == "Market Analysis":
         st.divider()
         st.subheader("📡 Live Trading Terminal")
         
-        live_terminal = st.checkbox("Enable Live Terminal (1-second updates)", value=False)
+        live_terminal = st.checkbox("Enable Live Terminal (10-second updates)", value=False)
         
         if live_terminal:
             terminal_placeholder = st.empty()
@@ -838,12 +838,12 @@ elif page == "Market Analysis":
                             # Real-time indicator
                             st.info(f"⏱️ Last updated: {pd.Timestamp.now().strftime('%H:%M:%S')}")
                     
-                    time.sleep(1)
+                    time.sleep(10)
                     st.rerun()
                 
                 except Exception as e:
                     st.error(f"Error in live terminal: {str(e)}")
-                    time.sleep(5)
+                    time.sleep(10)
                     st.rerun()
         
         # =========================

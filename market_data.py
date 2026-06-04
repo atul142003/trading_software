@@ -81,7 +81,7 @@ def download_with_fallback(
 # Rate limiting cache
 _live_data_cache = {}
 _last_request_time = {}
-_rate_limit_delay = 2  # seconds between requests
+_rate_limit_delay = 5  # seconds between requests (increased to avoid rate limiting)
 
 
 def get_live_market_data(symbol: str, use_cache: bool = True) -> dict:
